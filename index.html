@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive Dot Explorer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      margin: 0;
+      position: relative;
+    }
+
+    #dot {
+      width: 20px;
+      height: 20px;
+      background-color: black;
+      border-radius: 50%;
+      position: absolute;
+      top: 50px;
+      left: 50px;
+      z-index: 1;
+    }
+
+    .wall {
+      position: absolute;
+      z-index: 0;
+      border-radius: 5px;
+    }
+
+    .brown-wall {
+      background-color: sienna;
+    }
+
+    .gray-wall {
+      background-color: gray;
+    }
+
+    #inputArea {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-top: 1px solid #ccc;
+      box-sizing: border-box;
+      z-index: 2;
+    }
+
+    #message {
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div id="dot"></div>
+<div id="inputArea">
+  <input type="text" id="inputText" placeholder="Type here to communicate with the dot..." autocomplete="off" style="width: 80%;">
+  <button onclick="sendMessage()">Send</button>
+  <p id="message">The dot is exploring...</p>
+</div>
+
+<script>
+  const dot = document.getElementById("dot");
+  let walls = [];
+  let knowledge = {};
+  const wallSize = 50;
+  let dotSpeed = 2;
+  let direction = { x: Math.random() > 0.5 ? 1 : -1, y: Math.random() > 0.5 ? 1 : -1 };
+
+  // Movement logic with random direction change
+  function moveDot() {
+    const dotRect = dot.getBoundingClientRect();
+
+    // Randomize direction periodically
+    if (Math.random() < 0.02) {
+      direction.x = (Math.random() > 0.5 ? 1 : -1) * (Math.random() + 0.5);
+      direction.y = (Math.random() > 0.5 ? 1 : -1) * (Math.random() + 0.5);
+    }
+
+    for (let wall of walls) {
+      let wallRect = wall.getBoundingClientRect();
+      if (dotRect.right > wallRect.left && dotRect.left < wallRect.right &&
+          dotRect.bottom > wallRect.top && dotRect.top < wallRect.bottom) {
+        
+        // Check if wall is breakable
+        if (wall.classList.contains("brown-wall") && knowledge["brown walls are breakable"]) {
+          wall.remove();
+          walls = walls.filter(w => w !== wall);
+          document.getElementById("message").textContent = "The dot has broken a brown wall!";
+        } else {
+          // Bounce off wall
+          direction.x = -direction.x;
+          direction.y = -direction.y;
+        }
+        break;
+      }
+    }
+
+    // Update dot position
+    dot.style.left = dot.offsetLeft + direction.x * dotSpeed + "px";
+    dot.style.top = dot.offsetTop + direction.y * dotSpeed + "px";
+
+    // Screen boundaries
+    if (dot.offsetLeft <= 0 || dot.offsetLeft >= window.innerWidth - dot.offsetWidth) {
+      direction.x = -direction.x;
+    }
+    if (dot.offsetTop <= 0 || dot.offsetTop >= window.innerHeight - dot.offsetHeight) {
+      direction.y = -direction.y;
+    }
+  }
+
